@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pantau Madiun</title>
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- AOS Animation Library -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    /*====================================
+      VARIABLE DECLARATIONS
+    ====================================*/
+    :root {
+      --primary-color: #198754;
+      --secondary-color: #6c757d;
+      --accent-color: #fd7e14;
+      --bg-white: #ffffff;
+      --bg-blue-dark: rgb(7, 75, 154);
+      --bg-blue-light: rgb(140, 164, 214);
+      
+      --nav-height: 80px;
+      --nav-logo-height: 40px;
+      --nav-padding-vertical: 10px;
+      --nav-padding-horizontal: 20px;
+      --nav-link-font-size: 16px;
+      
+      --hero-min-height: 500px;
+      --hero-padding-vertical: 96px;
+      --hero-title-font-size: 48px;
+      --hero-text-font-size: 20px;
+      --hero-btn-font-size: 18px;
+      --hero-btn-padding: 10px 20px;
+      
+      --card-border-radius: 16px;
+      --card-img-height: 180px;
+      
+      --partner-logo-max-height: 200px;
+      
+      --step-number-size: 50px;
+      --step-font-size: 16px;
+      
+      --footer-padding-vertical: 48px;
+      --footer-font-size: 14px;
+      
+      --explore-min-height: 400px;
+      
+      --container-max-width: 1140px;
+    }
+    
+    /*====================================
+      GLOBAL STYLES
+    ====================================*/
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-white);
+      font-size: 16px;
+      color: #000;
+      overflow-x: hidden; /* Prevent horizontal scroll during animations */
+    }
+    
+    /* Animation keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideInFromLeft {
+      from { transform: translateX(-50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideInFromRight {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideInFromBottom {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes zoomIn {
+      from { transform: scale(1); }
+      to { transform: scale(1.2); }
+    }
+    
+    /* Animasi orbit untuk pseudo-element yang akan mengelilingi section */
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(200px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
+    }
+    
+    @keyframes orbit-reverse {
+      from { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+      to { transform: rotate(-360deg) translateX(150px) rotate(360deg); }
+    }
+    
+    /* Styling tambahan untuk gambar kota */
+    .kartun-image {
+      text-align: center;
+      padding: 0;
+      margin: 0;
+      background-color: var(--bg-white);
+      overflow: hidden;
+    }
+    .kartun-image img {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+      transition: transform 10s ease-in-out;
+    }
+    
+    /* Navbar animations */
+    .navbar {
+      transition: all 0.3s ease;
+    }
+    
+    .navbar-brand img {
+      transition: transform 0.5s ease;
+    }
+    
+    .navbar-brand:hover img {
+      transform: scale(1.1);
+    }
+    
+    .nav-link {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* GET STARTED BUTTON SECTION */
+    .get-started-section {
+      background-color: #f8f9fa;
+      padding: 3rem 0;
+      text-align: center;
+      position: relative;
+    }
+    
+    .get-started-content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .get-started-btn {
+      display: inline-block;
+      background: var(--primary-color);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    
+    .get-started-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s ease;
+    }
+    
+    .get-started-btn:hover {
+      background: white;
+      color: var(--primary-color);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .get-started-btn:hover::before {
+      left: 100%;
+    }
+    
+   
+    
+    /*====================================
+      CUSTOM STYLE UNTUK SERVICES SECTION
+    ====================================*/
+    .custom-monitoring-text {
+      font-size: 1.5rem;
+    }
+    
+    .services-section-custom {
+      background-color:  #f8f9fa;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .services-section-custom::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 100px;
+      height: 100px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s infinite ease-in-out;
+    }
+    
+    .services-section-custom::after {
+      content: '';
+      position: absolute;
+      bottom: -30px;
+      right: -30px;
+      width: 80px;
+      height: 80px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 8s infinite ease-in-out reverse;
+    }
+      
+    /*====================================
+      OTHER SECTIONS (Monitoring, How It Works, Explore, Footer)
+    ====================================*/
+    .monitor-card {
+      border-radius: var(--card-border-radius);
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(0);
+    }
+    
+    .monitor-card:hover { 
+      transform: translateY(-15px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    
+    .monitor-card .card-img-container {
+      height: var(--card-img-height);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .monitor-card .card-img-top {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.8s ease;
+    }
+    
+    .monitor-card:hover .card-img-top {
+      transform: scale(1.1);
+    }
+    
+    .monitor-card .card-body {
+      flex: 1;
+      transition: background-color 0.3s ease;
+    }
+    
+    .monitor-card:hover .card-body {
+      background-color: #f8f9fa;
+    }
+    
+    .monitor-card .card-title {
+      font-size: 20px;
+      font-weight: bold;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .monitor-card .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary-color);
+      transition: width 0.5s ease;
+    }
+    
+    .monitor-card:hover .card-title::after {
+      width: 50px;
+    }
+    
+    .monitor-card .card-text {
+      font-size: 16px;
+      color: #6c757d;
+      margin-top: 10px;
+      transition: color 0.3s ease;
+    }
+    
+    .step-card {
+      position: relative;
+      padding-left: 70px;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease;
+    }
+    
+    .step-card:hover {
+      transform: translateX(10px);
+    }
+    
+    .step-number {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--step-number-size);
+      height: var(--step-number-size);
+      background-color: var(--primary-color);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    
+    .step-card:hover .step-number {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .step-card h4 {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      transition: color 0.3s ease;
+    }
+    
+    .step-card:hover h4 {
+      color: var(--primary-color);
+    }
+    
+    .step-card p {
+      font-size: var(--step-font-size);
+      color: #6c757d;
+      transition: color 0.3s ease;
+    }
+    
+    .img-container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: all 0.5s ease;
+    }
+    
+    .img-container:hover {
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      transform: scale(1.02);
+    }
+    
+    .img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.8s ease;
+    }
+    
+    .img-container:hover img {
+      transform: scale(1.1);
+    }
+    
+    .explore-section {
+      width: 100%;
+      min-height: var(--explore-min-height);
+      position: relative;
+      padding: 96px 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .explore-section .explore-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: -1;
+      transition: transform 5s ease;
+    }
+    
+    .explore-section:hover .explore-background {
+      transform: scale(1.2);
+    }
+    
+    .explore-section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.67);
+      z-index: 0;
+      transition: background 0.5s ease;
+    }
+    
+    .explore-section:hover::before {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    
+    .explore-section .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: #fff;
+    }
+    
+    .explore-section h2 {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      transition: transform 0.5s ease, text-shadow 0.5s ease;
+    }
+    
+    .explore-section:hover h2 {
+      transform: scale(1.05);
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+    
+    .explore-section .lead {
+      font-size: 18px;
+      transition: transform 0.5s ease;
+    }
+    
+    .explore-section:hover .lead {
+      transform: translateY(5px);
+    }
+    
+    .footer {
+      width: 100%;
+      background-color: var(--bg-white);
+      color: #000;
+      padding: var(--footer-padding-vertical) 0;
+      box-sizing: border-box;
+      font-size: var(--footer-font-size);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
+      background-size: 200% 100%;
+      animation: gradientMove 5s infinite linear;
+    }
+    
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .footer .container {
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+    
+    .footer h5, .footer h6 {
+      font-size: 16px;
+      font-weight: bold;
+      position: relative;
+      display: inline-block;
+      padding-bottom: 8px;
+    }
+    
+    .footer h5::after, .footer h6::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 30px;
+      height: 2px;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    
+    .footer h5:hover::after, .footer h6:hover::after {
+      width: 100%;
+    }
+    
+    .footer p, .footer ul, .footer li {
+      font-size: 14px;
+    }
+    
+    .footer a {
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease, transform 0.3s ease;
+      display: inline-block;
+    }
+    
+    .footer a:hover {
+      color: var(--primary-color) !important;
+      transform: translateX(5px);
+    }
+    
+    .footer .social-icons a {
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+    
+    .footer .social-icons a:hover {
+      transform: translateY(-5px);
+    }
+    
+    .footer .social-icons a:hover i {
+      color: var(--primary-color);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      :root {
+        --hero-min-height: 400px;
+        --hero-padding-vertical: 60px;
+        --hero-title-font-size: 36px;
+        --explore-min-height: 300px;
+      }
+      
+      .get-started-btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      :root {
+        --hero-min-height: 300px;
+        --hero-padding-vertical: 40px;
+        --hero-title-font-size: 28px;
+        --explore-min-height: 250px;
+      }
+      .step-card {
+        padding-left: 60px;
+      }
+      
+      .get-started-btn {
+        padding: 10px 25px;
+        font-size: 0.9rem;
+      }
+    }
+    
+    /* Animation classes for AOS alternative */
+    .animate-fade-in {
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    
+    .animate-slide-left {
+      opacity: 0;
+      animation: slideInFromLeft 1s forwards;
+    }
+    
+    .animate-slide-right {
+      opacity: 0;
+      animation: slideInFromRight 1s forwards;
+    }
+    
+    .animate-slide-up {
+      opacity: 0;
+      animation: slideInFromBottom 1s forwards;
+    }
+    
+    .animate-pulse {
+      animation: pulse 2s infinite ease-in-out;
+    }
+    
+    .animate-float {
+      animation: float 6s infinite ease-in-out;
+    }
+    
+    .animate-rotate {
+      animation: rotate 10s infinite linear;
+    }
+    
+    .animate-zoom {
+      animation: zoomIn 5s forwards ease-in-out;
+    }
+    
+    /* Animation delay classes */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+    .delay-700 { animation-delay: 0.7s; }
+    .delay-800 { animation-delay: 0.8s; }
+    .delay-900 { animation-delay: 0.9s; }
+    .delay-1000 { animation-delay: 1s; }
+  </style>
+</head>
+<body>
+  
+  <!-- KARTUN IMAGE SECTION -->
+  <section class="kartun-image" id="kartun-section">
+    <img src="/static/images/poster.jpg" alt="Kota" id="kartun-img">
+  </section>
+  
+  <!-- NAVBAR dihapus -->
+  
+  <!-- GET STARTED BUTTON SECTION -->
+  <section class="get-started-section" id="get-started-section">
+    <div class="container">
+      <div class="get-started-content">
+        <!-- Gambar pantau.jpeg dipindahkan ke sini -->
+        <img src="/static/images/pindai.png" alt="Pantau Logo" style="height: 25px; margin-bottom: 20px;">
+        <h2 class="display-5 fw-bold mb-4 animate-fade-in">Ready to Experience Smart Surveillance?</h2>
+        <p class="lead mb-5 animate-fade-in delay-200">Join the future of city monitoring with our advanced AI-powered system</p>
+        <a href="/camera/psc" class="get-started-btn" id="main-cta-btn">
+          Get Started<i class="bi bi-arrow-right"></i>
+        </a>        
+      </div>
+    </div>
+  </section>
+  
+  <!-- MONITORING SERVICES SECTION -->
+  <section class="py-5 services-section-custom" id="services-section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card monitor-card h-100" id="card-1">
+            <div class="card-img-container">
+              <img src="/static/images/psc.jpeg" class="card-img-top" alt="Traffic Monitoring">
+            </div>
+            <div class="card-body">
+              <h5 class="card-title fw-bold">Traffic Monitoring</h5>
+              <p class="card-text text-muted">
+                Monitor traffic flow, detect congestion, and identify traffic violations in real-time.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card monitor-card h-100" id="card-2">
+            <div class="card-img-container">
+              <img src="/static/images/kantor.jpg" class="card-img-top" alt="Public Safety">
+            </div>
+            <div class="card-body">
+              <h5 class="card-title fw-bold">Public Safety</h5>
+              <p class="card-text text-muted">
+                Enhance security in public spaces by detecting suspicious behavior and activities.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card monitor-card h-100" id="card-3">
+            <div class="card-img-container">
+              <img src="/static/images/icon.jpeg" class="card-img-top" alt="Emergency Response">
+            </div>
+            <div class="card-body">
+              <h5 class="card-title fw-bold">Emergency Response</h5>
+              <p class="card-text text-muted">
+                Quickly identify and respond to accidents and emergencies with automated alerts.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- HOW IT WORKS SECTION -->
+  <section class="py-5 bg-light" id="how-it-works">
+    <div class="container">
+      <div class="text-center mb-5" id="how-it-works-header">
+        <h6 class="text-uppercase text-primary fw-bold">Process</h6>
+        <h2 class="display-5 fw-bold">How It Works</h2>
+        <p class="lead text-muted">A simple three-step process powered by advanced technology</p>
+      </div>
+      <div class="row">
+        <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
+          <div class="img-container" id="how-it-works-img">
+            <img src="/static/images/psc.jpeg" alt="How it works" class="img-fluid rounded-4 shadow">
+          </div>
+        </div>
+        <div class="col-lg-6 order-lg-1">
+          <div class="step-card" id="step-1">
+            <div class="step-number">1</div>
+            <h4 class="fw-bold">Video Feed Processing</h4>
+            <p class="text-muted">
+              Our system captures video feeds from strategically placed CCTV cameras throughout Madiun City.
+            </p>
+          </div>
+          <div class="step-card" id="step-2">
+            <div class="step-number">2</div>
+            <h4 class="fw-bold">Camera Detection</h4>
+            <p class="text-muted">
+              The Computer Vision Algorithm analyzes each frame to detect and classify objects, people, and vehicles in real-time.
+            </p>
+          </div>
+          <div class="step-card" id="step-3">
+            <div class="step-number">3</div>
+            <h4 class="fw-bold">Alert & Response</h4>
+            <p class="text-muted">
+              Based on predefined rules, the system generates alerts for authorities to take appropriate action when needed.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- EXPLORE SECTION -->
+  <section class="explore-section" id="explore-section">
+    <img src="/static/images/kota madiun.jpeg" alt="Explore Madiun" class="explore-background" id="explore-bg">
+    <div class="container text-center text-white">
+      <h2 class="display-4 fw-bold" id="explore-title">EXPLORE MADIUN</h2>
+      <p class="lead" id="explore-subtitle">DISCOVER CITY OF MADIUN WITH OUR SMART SURVEILLANCE SYSTEM</p>
+    </div>
+  </section>
+  
+  <!-- FOOTER -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <h5 class="mb-0" id="footer-title">Pantau Madiun</h5>
+          </div>
+          <p class="mb-0" id="footer-desc">
+            Smart Surveillance System for Madiun City Powered by Object Detection Technology.
+          </p>
+        </div>
+        <div class="col-md-2 col-6 mb-4 mb-md-0">
+          <h6 class="text-uppercase fw-bold mb-3">Links</h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><a href="/" class="text-dark text-decoration-none footer-link">Home</a></li>
+            <li class="mb-2"><a href="/all" class="text-dark text-decoration-none footer-link">Deteksi Semua CCTV</a></li>
+            <li class="mb-2"><a href="/data" class="text-dark text-decoration-none footer-link">Data Deteksi</a></li>
+          </ul>
+        </div>
+        <div class="col-md-2 col-6 mb-4 mb-md-0">
+          <h6 class="text-uppercase fw-bold mb-3">Resources</h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><a href="#" class="text-dark text-decoration-none footer-link">Blog</a></li>
+            <li class="mb-2"><a href="#" class="text-dark text-decoration-none footer-link">API</a></li>
+            <li class="mb-2"><a href="#" class="text-dark text-decoration-none footer-link">Support</a></li>
+            <li class="mb-2"><a href="#" class="text-dark text-decoration-none footer-link">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 mt-4 mt-lg-0">
+          <h6 class="text-uppercase fw-bold mb-3">Contact</h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> Madiun City, East Java, Indonesia</li>
+            <li class="mb-2"><i class="bi bi-envelope me-2"></i> <a href="/cdn-cgi/l/email-protection" class="__cf_email__ text-dark" data-cfemail="0e656163676068614e636f6a677b6065617a6f20696120676a">[email protected]</a></li>
+            <li class="mb-2"><i class="bi bi-telephone me-2"></i> +62 811-3577-800</li>
+          </ul>
+          <div class="mt-3 social-icons">
+            <a href="#" class="text-dark me-3"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-dark me-3"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="text-dark me-3"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-dark me-3"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+      </div>
+      <hr class="my-4 bg-light opacity-25">
+      <div class="row">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="mb-0">&copy; 2025 FIXTIVE GROUP. All Rights Reserved.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <p class="mb-0">A Project of Kominfo Madiun Initiative</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Bootstrap JS Bundle -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <!-- AOS Animation Library -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Custom Animation Scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      function isInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+      }
+      
+      function animateOnScroll() {
+        const elements = document.querySelectorAll('.monitor-card, .step-card, #how-it-works-header, #how-it-works-img, #explore-title, #explore-subtitle, #footer-title, #footer-desc');
+        elements.forEach(element => {
+          if (isInViewport(element) && !element.classList.contains('animated')) {
+            if (element.id === 'card-1' || element.id === 'step-1' || element.id === 'footer-title') {
+              element.classList.add('animate-slide-left', 'animated');
+            } else if (element.id === 'card-3' || element.id === 'how-it-works-img' || element.id === 'footer-desc') {
+              element.classList.add('animate-slide-right', 'animated');
+            } else if (element.id === 'explore-title' || element.id === 'explore-subtitle') {
+              element.classList.add('animate-fade-in', 'animated');
+            } else {
+              element.classList.add('animate-slide-up', 'animated');
+            }
+          }
+        });
+      }
+      
+      animateOnScroll();
+      window.addEventListener('scroll', animateOnScroll);
+      
+      const kartunImg = document.getElementById('kartun-img');
+      if (kartunImg) {
+        kartunImg.addEventListener('mouseover', function() {
+          this.style.transform = 'scale(1.05)';
+        });
+        kartunImg.addEventListener('mouseout', function() {
+          this.style.transform = 'scale(1)';
+        });
+      }
+      
+      const navbar = document.getElementById('main-navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+          navbar.classList.add('shadow');
+          navbar.style.padding = '5px 0';
+        } else {
+          navbar.classList.remove('shadow');
+          navbar.style.padding = '10px 0';
+        }
+      });
+      
+      const cards = document.querySelectorAll('.monitor-card');
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.classList.add('animate-slide-up');
+        }, 200 * index);
+      });
+      
+      const steps = document.querySelectorAll('.step-card');
+      steps.forEach((step, index) => {
+        setTimeout(() => {
+          step.classList.add('animate-slide-left');
+        }, 300 * index);
+      });
+      
+      const getStartedBtn = document.getElementById('main-cta-btn');
+      if (getStartedBtn) {
+        getStartedBtn.addEventListener('mouseover', function() {
+          this.classList.add('animate-pulse');
+        });
+        getStartedBtn.addEventListener('mouseout', function() {
+          this.classList.remove('animate-pulse');
+        });
+      }
+      
+      const exploreSection = document.getElementById('explore-section');
+      const exploreBg = document.getElementById('explore-bg');
+      if (exploreSection && exploreBg) {
+        exploreBg.style.transform = 'scale(1)';
+        window.addEventListener('scroll', function() {
+          if (isInViewport(exploreSection) && !exploreBg.classList.contains('zoomed')) {
+            exploreBg.classList.add('animate-zoom', 'zoomed');
+          }
+        });
+        exploreSection.addEventListener('mouseenter', function() {
+          exploreBg.style.transform = 'scale(1.2)';
+        });
+        exploreSection.addEventListener('mouseleave', function() {
+          if (!exploreBg.classList.contains('zoomed')) {
+            exploreBg.style.transform = 'scale(1)';
+          }
+        });
+      }
+      
+      const footerLinks = document.querySelectorAll('.footer-link');
+      footerLinks.forEach(link => {
+        link.addEventListener('mouseover', function() {
+          this.style.color = 'var(--primary-color)';
+          this.style.transform = 'translateX(5px)';
+        });
+        link.addEventListener('mouseout', function() {
+          this.style.color = '';
+          this.style.transform = '';
+        });
+      });
+      
+      const socialIcons = document.querySelectorAll('.social-icons a');
+      socialIcons.forEach(icon => {
+        icon.addEventListener('mouseover', function() {
+          this.querySelector('i').style.transform = 'scale(1.2)';
+        });
+        icon.addEventListener('mouseout', function() {
+          this.querySelector('i').style.transform = '';
+        });
+      });
+      
+      const exploreTitle = document.getElementById('explore-title');
+      if (exploreTitle) {
+        const text = exploreTitle.textContent;
+        exploreTitle.textContent = '';
+        function typeWriter(text, i, element) {
+          if (i < text.length) {
+            element.textContent += text.charAt(i);
+            setTimeout(function() {
+              typeWriter(text, i + 1, element);
+            }, 100);
+          }
+        }
+        window.addEventListener('scroll', function() {
+          if (isInViewport(exploreSection) && exploreTitle.textContent === '') {
+            typeWriter(text, 0, exploreTitle);
+          }
+        });
+      }
+      
+      const stepNumbers = document.querySelectorAll('.step-number');
+      stepNumbers.forEach(number => {
+        number.classList.add('animate-pulse');
+      });
+    });
+  </script>
+</body>
+</html>

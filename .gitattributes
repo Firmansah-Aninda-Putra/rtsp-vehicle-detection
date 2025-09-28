@@ -1,0 +1,2 @@
+yolov8x.pt filter=lfs diff=lfs merge=lfs -text
+yolov8x.onnx filter=lfs diff=lfs merge=lfs -text

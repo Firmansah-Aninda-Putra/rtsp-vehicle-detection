@@ -1,0 +1,7 @@
+.custom-header {
+    background: url('/static/images/kota madiun.jpeg') no-repeat center center;
+    background-size: contain;
+    background-color: #000; /* opsional, sebagai latar di area kosong */
+    /* Anda bisa menghapus padding tetap, karena kita akan menyesuaikan tinggi container */
+  }
+  

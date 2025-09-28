@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>All CCTV - Integrasi Streaming, Data & Pengaturan Area</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts: Inter and Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Google Charts Loader -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #3a86ff;
+      --secondary-color: #8338ec;
+      --accent-color: #ff006e;
+      --success-color: #38b000;
+      --warning-color: #ffbe0b;
+      --danger-color: #ff006e;
+      --dark-color: #1e293b;
+      --light-color: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --hover-color: #f1f5f9;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Navbar styling */
+    nav.navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    nav.navbar .navbar-brand img {
+      height: 40px;
+      object-fit: contain;
+    }
+    
+    nav.navbar .navbar-nav .nav-link {
+      color: var(--dark-color) !important;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    nav.navbar .navbar-nav .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 50%;
+      background-color: var(--primary-color);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+    
+    nav.navbar .navbar-nav .nav-link:hover::after,
+    nav.navbar .navbar-nav .nav-link:focus::after {
+      width: 60%;
+    }
+    
+    nav.navbar .navbar-nav .nav-link:hover,
+    nav.navbar .navbar-nav .nav-link:focus {
+      color: var(--primary-color) !important;
+    }
+    
+    nav.navbar .dropdown-menu {
+      border: none;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 0.5rem 0;
+    }
+    
+    nav.navbar .dropdown-item {
+      padding: 0.5rem 1.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    nav.navbar .dropdown-item:hover {
+      background-color: var(--hover-color);
+      color: var(--primary-color);
+    }
+    
+    /* Awak Sigap button */
+    nav.navbar .btn-sigap {
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--success-color), #2d9900);
+      border: none;
+      color: #fff !important;
+      box-shadow: 0 4px 8px rgba(56, 176, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    nav.navbar .btn-sigap:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(56, 176, 0, 0.4);
+      background: linear-gradient(135deg, #2d9900, var(--success-color));
+    }
+
+    /* Multi-camera grid layout */
+    .camera-grid-container {
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: var(--dark-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 1rem;
+    }
+    
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 1rem;
+      height: 600px;
+    }
+    
+    .camera-cell {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #000;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .camera-cell:hover {
+      transform: scale(1.02);
+      z-index: 5;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .camera-cell.active {
+      border: 3px solid var(--primary-color);
+    }
+    
+    .camera-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .stream-img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      transition: transform 0.5s ease;
+    }
+    
+    .camera-container:hover .stream-img {
+      transform: scale(1.05);
+    }
+    
+    .overlay-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Detection box styling */
+    .detection-box {
+      position: absolute;
+      border: 2px solid var(--success-color);
+      background-color: rgba(56, 176, 0, 0.1);
+      z-index: 3;
+      pointer-events: none;
+    }
+    
+    .detection-label {
+      position: absolute;
+      background-color: var(--success-color);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 5px;
+      border-radius: 2px;
+      top: -20px;
+      left: 0;
+      white-space: nowrap;
+      z-index: 4;
+    }
+    
+    /* Camera info overlay */
+    .camera-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      color: white;
+      padding: 0.75rem;
+      z-index: 3;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    
+    .camera-container:hover .camera-info {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .camera-info h3 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .camera-info p {
+      margin: 5px 0 0;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    /* Camera controls */
+    .camera-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 4;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .camera-container:hover .camera-controls {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .camera-control-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.8rem;
+    }
+    
+    .camera-control-btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+    
+    /* Loading spinner */
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      backdrop-filter: blur(5px);
+      pointer-events: none;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      border-left-color: var(--secondary-color);
+      animation: spinCycle 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+    
+    @keyframes spinCycle {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Loading progress indicator */
+    .loading-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      z-index: 6;
+      transition: width 0.3s ease-out;
+      box-shadow: 0 0 10px rgba(58, 134, 255, 0.5);
+    }
+    
+    /* Stream placeholder */
+    .stream-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+      z-index: 1;
+    }
+    
+    .placeholder-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.7;
+    }
+    
+    .placeholder-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    /* Layout controls */
+    .layout-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .layout-btn {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: var(--dark-color);
+    }
+    
+    .layout-btn:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+    
+    .layout-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    /* Control panel */
+    .control-panel {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      height: 600px;
+      overflow-y: auto;
+      color: var(--dark-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      position: relative;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) #f1f1f1;
+    }
+    
+    .control-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .control-panel::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .control-panel::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+    
+    .control-panel h5 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      color: var(--dark-color);
+      font-size: 1.2rem;
+      position: relative;
+      display: inline-block;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .control-panel h5::after {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      bottom: -8px;
+      left: 25%;
+      border-radius: 3px;
+    }
+    
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .control-card {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 1.25rem 1rem;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(58, 134, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+    }
+    
+    .control-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      transform: rotate(45deg);
+      transition: all 0.5s ease;
+    }
+    
+    .control-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(58, 134, 255, 0.4);
+    }
+    
+    .control-card:hover::before {
+      transform: rotate(45deg) translate(10%, 10%);
+    }
+    
+    .control-card i {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.3s ease;
+    }
+    
+    .control-card:hover i {
+      transform: scale(1.2);
+    }
+    
+    .control-card-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .control-tooltip {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--dark-color);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      z-index: 10;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .control-tooltip::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 6px 6px 6px;
+      border-style: solid;
+      border-color: transparent transparent var(--dark-color) transparent;
+    }
+    
+    .control-card:hover .control-tooltip {
+      opacity: 1;
+      visibility: visible;
+      bottom: -30px;
+    }
+    
+    /* Submenu styling */
+    .submenu {
+      background-color: white;
+      border-radius: 8px;
+      margin-top: 0.75rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transform-origin: top center;
+      transform: scaleY(0);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    
+    .submenu.show {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    
+    .submenu-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--dark-color);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .submenu-item:last-child {
+      border-bottom: none;
+    }
+    
+    .submenu-item:hover {
+      background-color: var(--hover-color);
+      color: var(--primary-color);
+      padding-left: 1.25rem;
+    }
+    
+    .submenu-item::before {
+      content: '•';
+      margin-right: 8px;
+      color: var(--primary-color);
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease;
+    }
+    
+    .submenu-item:hover::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Featured Cameras Section */
+    .featured-section {
+      margin: 3rem 0;
+      padding: 2rem;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    
+    .featured-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: var(--dark-color);
+      position: relative;
+      display: inline-block;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .featured-title::after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      bottom: -10px;
+      left: 20%;
+      border-radius: 4px;
+    }
+    
+    .featured-scroll {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    
+    .featured-card {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      transition: all 0.4s ease;
+      position: relative;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .featured-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    .card-top {
+      width: 100%;
+      height: 150px;
+      background: url('/static/images/kota madiun.jpeg') no-repeat center center;
+      background-size: cover;
+      position: relative;
+      transition: all 0.5s ease;
+    }
+    
+    .featured-card:hover .card-top {
+      transform: scale(1.1);
+    }
+    
+    .card-middle {
+      background-color: white;
+      text-align: center;
+      padding: 1.25rem 1rem;
+      position: relative;
+      z-index: 1;
+      flex-grow: 1; /* This makes all card-middle sections take up equal space */
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Center content vertically */
+      min-height: 80px; /* Ensure minimum height for all cards */
+    }
+    
+    .card-middle h5 {
+      margin: 0;
+      color: var(--dark-color);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .card-bottom {
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    .location-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.9);
+      color: var(--primary-color);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 2;
+    }
+
+    /* Data Section */
+    .data-section {
+      margin-top: 2.5rem;
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      color: var(--dark-color);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+    
+    .data-section h2 {
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: 700;
+      color: var(--dark-color);
+      position: relative;
+      display: inline-block;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .data-section h2::after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      bottom: -10px;
+      left: 20%;
+      border-radius: 4px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .action-buttons .btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 50px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .action-buttons .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #2d9900);
+      border: none;
+    }
+    
+    .action-buttons .btn-danger {
+      background: linear-gradient(135deg, var(--danger-color), #d10057);
+      border: none;
+    }
+    
+    .action-buttons .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Custom tabs */
+    .nav-tabs {
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) #f1f1f1;
+      padding-bottom: 5px;
+    }
+    
+    .nav-tabs::-webkit-scrollbar {
+      height: 5px;
+    }
+    
+    .nav-tabs::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .nav-tabs::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+    
+    .nav-tabs .nav-link {
+      border: none;
+      font-size: 0.95rem;
+      padding: 0.625rem 1.25rem;
+      color: var(--dark-color);
+      font-weight: 500;
+      border-radius: 50px;
+      margin-right: 0.625rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    .nav-tabs .nav-link:hover {
+      color: var(--primary-color);
+    }
+    
+    .nav-tabs .nav-link.active {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      box-shadow: 0 4px 8px rgba(58, 134, 255, 0.3);
+    }
+    
+    /* Table styling */
+    .table {
+      background-color: white;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    
+    .table thead {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+    }
+    
+    .table thead th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      padding: 0.9375rem 0.75rem;
+      border: none;
+    }
+    
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+      background-color: var(--hover-color);
+      transform: scale(1.01);
+    }
+    
+    .table tbody tr:nth-child(even) {
+      background-color: var(--hover-color);
+    }
+    
+    .table td {
+      padding: 0.9375rem 0.75rem;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--dark-color);
+    }
+    
+    .table .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      border-radius: 50px;
+      padding: 0.3125rem 0.9375rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .table .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(58, 134, 255, 0.3);
+    }
+
+    /* Detection count badges */
+    .detection-count-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-width: 150px;
+    }
+    
+    .count-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .count-item i {
+      margin-right: 5px;
+    }
+    
+    .count-car { color: #3a86ff; }
+    .count-motorcycle { color: #ff006e; }
+    .count-truck { color: #ffbe0b; }
+    .count-bus { color: #8338ec; }
+    .count-person { color: #38b000; }
+    .count-bicycle { color: #fb5607; }
+
+    /* Responsive adjustments */
+    @media (max-width: 1199.98px) {
+      .camera-grid {
+        height: 500px;
+      }
+      
+      .control-panel {
+        height: 500px;
+      }
+    }
+    
+    @media (max-width: 991.98px) {
+      .camera-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+        height: auto;
+        gap: 0.75rem;
+      }
+      
+      .camera-cell {
+        height: 250px;
+      }
+      
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .control-panel {
+        height: auto;
+        margin-top: 1.5rem;
+      }
+    }
+    
+    @media (max-width: 767.98px) {
+      .featured-scroll {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .action-buttons .btn {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 575.98px) {
+      .camera-cell {
+        height: 200px;
+      }
+      
+      .camera-info h3 {
+        font-size: 0.9rem;
+      }
+      
+      .camera-info p {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="/static/images/pantau.jpeg" alt="Pantau Madiun" height="40">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Menu Kanan -->
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="https://madiunkota.go.id/">Beranda</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" 
+               aria-expanded="false">
+              Profil
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="https://www.instagram.com/fixtive/">Pengembang</a></li>
+              <li><a class="dropdown-item" href="#">Visi &amp; Misi</a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Layanan</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Pemerintahan</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Madiun Terkini</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/camera/tugu">Kamera</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">IPKD</a>
+          </li>
+        </ul>
+        <!-- Tombol "Awak Sigap" -->
+        <a href="/" class="btn btn-sigap ms-3">Home <i class="fas fa-arrow-right ms-1"></i></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Konten Utama -->
+  <div class="container-fluid mt-4">
+    <div class="row px-3">
+      <!-- Layout Controls -->
+      <div class="col-12 mb-3">
+        <div class="layout-controls">
+          <button class="layout-btn active" id="grid-layout-btn">
+            <i class="fas fa-th"></i> Grid View
+          </button>
+          <button class="layout-btn" id="single-layout-btn">
+            <i class="fas fa-square"></i> Single View
+          </button>
+          <button class="layout-btn" id="fullscreen-btn">
+            <i class="fas fa-expand"></i> Fullscreen
+          </button>
+        </div>
+      </div>
+      
+      <!-- Multi-Camera Grid (Left) -->
+      <div class="col-lg-8 mb-4">
+        <div class="camera-grid-container">
+          <div class="camera-grid" id="camera-grid">
+            {% for cam_id, camera in cameras.items() %}
+            <div class="camera-cell" data-cam-id="{{ cam_id }}">
+              <div class="camera-container">
+                <!-- Loading progress bar -->
+                <div class="loading-progress" id="loadingProgress_{{ cam_id }}"></div>
+                
+                <!-- Stream placeholder -->
+                <div class="stream-placeholder" id="placeholder_{{ cam_id }}">
+                  <i class="fas fa-video placeholder-icon"></i>
+                  <p class="placeholder-text">{{ camera.name }} stream is loading...</p>
+                </div>
+                
+                <!-- Spinner overlay (non-blocking) -->
+                <div class="spinner-overlay" id="spinnerOverlay_{{ cam_id }}">
+                  <div class="spinner"></div>
+                </div>
+                
+                <img id="streamImg_{{ cam_id }}" class="stream-img" alt="{{ camera.name }}" style="height: 100%; opacity: 0;">
+                <canvas id="overlayCanvas_{{ cam_id }}" class="overlay-canvas" width="640" height="400"></canvas>
+                
+                <!-- Detection count badge -->
+                <div class="detection-count-badge" id="detectionCounts_{{ cam_id }}">
+                  <div class="count-item">
+                    <i class="fas fa-car"></i> <span class="count-car" id="carCount_{{ cam_id }}">0</span>
+                  </div>
+                  <div class="count-item">
+                    <i class="fas fa-motorcycle"></i> <span class="count-motorcycle" id="motorcycleCount_{{ cam_id }}">0</span>
+                  </div>
+                  <div class="count-item">
+                    <i class="fas fa-truck"></i> <span class="count-truck" id="truckCount_{{ cam_id }}">0</span>
+                  </div>
+                  <div class="count-item">
+                    <i class="fas fa-bus"></i> <span class="count-bus" id="busCount_{{ cam_id }}">0</span>
+                  </div>
+                  <div class="count-item">
+                    <i class="fas fa-user"></i> <span class="count-person" id="personCount_{{ cam_id }}">0</span>
+                  </div>
+                  <div class="count-item">
+                    <i class="fas fa-bicycle"></i> <span class="count-bicycle" id="bicycleCount_{{ cam_id }}">0</span>
+                  </div>
+                </div>
+                
+                <!-- Camera info overlay -->
+                <div class="camera-info">
+                  <h3>{{ camera.name }}</h3>
+                  <p>Live Streaming • <span id="resolution_{{ cam_id }}">720p</span> • <span id="status_{{ cam_id }}">Connecting...</span></p>
+                </div>
+                
+                <!-- Camera controls -->
+                <div class="camera-controls">
+                  <div class="camera-control-btn" onclick="toggleFullscreen('streamImg_{{ cam_id }}')">
+                    <i class="fas fa-expand"></i>
+                  </div>
+                  <div class="camera-control-btn" onclick="captureSnapshot('streamImg_{{ cam_id }}')">
+                    <i class="fas fa-camera"></i>
+                  </div>
+                  <div class="camera-control-btn" onclick="setActiveCamera('{{ cam_id }}')">
+                    <i class="fas fa-eye"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Control Panel (Right) -->
+      <div class="col-lg-4 mb-4">
+        <div class="control-panel">
+          <h5>CONTROL PANEL</h5>
+          
+          <div class="control-grid">
+            <!-- Kartu Resolusi -->
+            <div class="control-card" data-bs-toggle="collapse" data-bs-target="#submenu-resolusi">
+              <i class="fa-solid fa-tv"></i>
+              <p class="control-card-title">Resolusi</p>
+              <span class="control-tooltip">Resolusi Video</span>
+            </div>
+            
+            <!-- Kartu Streaming CCTV -->
+            <div class="control-card" data-bs-toggle="collapse" data-bs-target="#submenu-kamera">
+              <i class="fa-solid fa-camera"></i>
+              <p class="control-card-title">CCTV</p>
+              <span class="control-tooltip">Streaming CCTV</span>
+            </div>
+            
+            <!-- Kartu Data Deteksi -->
+            <div class="control-card" data-bs-toggle="collapse" data-bs-target="#submenu-data">
+              <i class="fa-solid fa-database"></i>
+              <p class="control-card-title">Data</p>
+              <span class="control-tooltip">Data Deteksi</span>
+            </div>
+            
+            <!-- Kartu Polygon -->
+            <div class="control-card" data-bs-toggle="collapse" data-bs-target="#submenu-polygon">
+              <i class="fa-solid fa-draw-polygon"></i>
+              <p class="control-card-title">Area</p>
+              <span class="control-tooltip">Atur Area Deteksi</span>
+            </div>
+          </div>
+          
+          <!-- Submenu Resolusi -->
+          <div class="collapse submenu" id="submenu-resolusi">
+            <div class="submenu-item" onclick="setResolution('140p')">140p</div>
+            <div class="submenu-item" onclick="setResolution('240p')">240p</div>
+            <div class="submenu-item" onclick="setResolution('360p')">360p</div>
+            <div class="submenu-item" onclick="setResolution('480p')">480p</div>
+            <div class="submenu-item" onclick="setResolution('720p')">720p</div>
+            <div class="submenu-item" onclick="setResolution('1080p')">1080p</div>
+          </div>
+          
+          <!-- Submenu Kamera -->
+          <div class="collapse submenu" id="submenu-kamera">
+            {% for cam_id, camera in cameras.items() %}
+            <div class="submenu-item" onclick="setActiveCamera('{{ cam_id }}')">{{ camera.name }}</div>
+            {% endfor %}
+          </div>
+          
+          <!-- Submenu Data -->
+          <div class="collapse submenu" id="submenu-data">
+            <div class="submenu-item" onclick="window.location.href='/data'">Lihat Data Deteksi</div>
+            <div class="submenu-item" onclick="window.location.href='/export_excel'">Export ke Excel</div>
+            <div class="submenu-item" onclick="resetData()">Reset Data</div>
+          </div>
+          
+          <!-- Submenu Polygon -->
+          <div class="collapse submenu" id="submenu-polygon">
+            <div class="submenu-item" onclick="startPolygon()">Mulai Area Deteksi</div>
+            <div class="submenu-item" onclick="savePolygon()">Simpan Area</div>
+            <div class="submenu-item" onclick="resetPolygon()">Reset Area</div>
+          </div>
+          
+          <!-- Submenu Model -->
+          <div class="collapse submenu" id="submenu-model">
+            <div class="submenu-item" onclick="switchModel('yolov8s')">YOLOv8s</div>
+            <div class="submenu-item" onclick="switchModel('yolov8x')">YOLOv8x</div>
+            <div class="submenu-item" onclick="switchModel('yolov8n')">YOLOv8n</div>
+            <div class="submenu-item" onclick="switchModel('yolov8m')">YOLOv8m</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Featured Cameras Section -->
+    <div class="featured-section">
+      <div class="featured-title">DAFTAR LOKASI YANG TERSEDIA</div>
+      <div class="featured-scroll">
+        {% for cam_id, camera in cameras.items() %}
+        <a href="/camera/{{ cam_id }}" style="text-decoration: none;">
+          <div class="featured-card">
+            <div class="location-badge"><i class="fas fa-map-marker-alt me-1"></i> Madiun</div>
+            <div class="card-top"></div>
+            <div class="card-middle">
+              <h5>
+                {% if camera.name == "JALAN URIP SUMOHARJO" %}
+                  JALAN URIP<br>SUMOHARJO
+                {% else %}
+                  {{ camera.name }}
+                {% endif %}
+              </h5>
+            </div>
+            <div class="card-bottom"></div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Data Deteksi Section -->
+    <div class="data-section">
+      <h2>REKAPITULASI DATA HARIAN</h2>
+      <div class="action-buttons">
+        <a href="/export_excel" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Export ke Excel</a>
+        <button id="resetDataBtn" class="btn btn-danger"><i class="fas fa-trash-alt me-2"></i>Reset Data</button>
+      </div>
+      <ul class="nav nav-tabs" id="detectionTab" role="tablist">
+        {% for cam_id, camera in cameras.items() %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if loop.first %}active{% endif %}" id="tab-{{ cam_id }}" data-bs-toggle="tab" data-bs-target="#content-{{ cam_id }}" type="button" role="tab" aria-controls="content-{{ cam_id }}" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+            {{ camera.name }}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="tab-content" id="detectionTabContent">
+        {% for cam_id, camera in cameras.items() %}
+        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="content-{{ cam_id }}" role="tabpanel" aria-labelledby="tab-{{ cam_id }}">
+          <div class="table-responsive mt-3">
+            <table class="table table-bordered text-center">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Car</th>
+                  <th>Motorcycle</th>
+                  <th>Truck</th>
+                  <th>Bus</th>
+                  <th>Person</th>
+                  <th>Bicycle</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% set found = false %}
+                {% for row in records %}
+                  {% if row[1]|string == cam_id %}
+                  <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                    <td>{{ row[5] }}</td>
+                    <td>{{ row[6] }}</td>
+                    <td>{{ row[7] }}</td>
+                    <td><a href="/camera/{{ cam_id }}" class="btn btn-primary"><i class="fas fa-video me-1"></i>Lihat</a></td>
+                  </tr>
+                  {% set found = true %}
+                  {% endif %}
+                {% endfor %}
+                {% if not found %}
+                <tr>
+                  <td colspan="8">Tidak ada data untuk {{ camera.name }}</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Skrip Interaktif -->
+  <script>
+    // Camera stream management
+    const cameras = {{ cameras|tojson }};
+    const streamStatus = {}; // Track loading status of each stream
+    let activeCamera = null; // Currently active camera
+    let currentLayout = 'grid'; // Current layout mode: 'grid' or 'single'
+    
+    // Initialize all cameras as "not loaded"
+    Object.keys(cameras).forEach(camId => {
+      streamStatus[camId] = {
+        loaded: false,
+        loading: false,
+        error: false,
+        progress: 0
+      };
+    });
+    
+    // Set initial active camera
+    document.addEventListener("DOMContentLoaded", function() {
+      // Set first camera as active by default
+      const firstCamId = Object.keys(cameras)[0];
+      setActiveCamera(firstCamId);
+      
+      // Load all cameras in grid view
+      Object.keys(cameras).forEach(camId => {
+        loadCamera(camId);
+      });
+      
+      // Setup layout buttons
+      document.getElementById('grid-layout-btn').addEventListener('click', function() {
+        setLayout('grid');
+      });
+      
+      document.getElementById('single-layout-btn').addEventListener('click', function() {
+        setLayout('single');
+      });
+      
+      document.getElementById('fullscreen-btn').addEventListener('click', function() {
+        toggleFullscreenGrid();
+      });
+      
+      // Setup camera cell click handlers
+      document.querySelectorAll('.camera-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+          const camId = this.dataset.camId;
+          setActiveCamera(camId);
+        });
+      });
+      
+      // Start detection count updates
+      startDetectionCountUpdates();
+    });
+    
+    // Set active camera
+    function setActiveCamera(camId) {
+      // Remove active class from all cells
+      document.querySelectorAll('.camera-cell').forEach(cell => {
+        cell.classList.remove('active');
+      });
+      
+      // Add active class to selected cell
+      const selectedCell = document.querySelector(`.camera-cell[data-cam-id="${camId}"]`);
+      if (selectedCell) {
+        selectedCell.classList.add('active');
+      }
+      
+      // Update active camera
+      activeCamera = camId;
+      
+      // If in single view, show only the active camera
+      if (currentLayout === 'single') {
+        document.querySelectorAll('.camera-cell').forEach(cell => {
+          if (cell.dataset.camId === camId) {
+            cell.style.display = 'block';
+          } else {
+            cell.style.display = 'none';
+          }
+        });
+      }
+      
+      // Update polygon for active camera
+      updatePolygon(camId);
+    }
+    
+    // Set layout mode
+    function setLayout(layout) {
+      currentLayout = layout;
+      
+      // Update layout buttons
+      document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      if (layout === 'grid') {
+        document.getElementById('grid-layout-btn').classList.add('active');
+        document.getElementById('camera-grid').style.gridTemplateColumns = 'repeat(2, 1fr)';
+        document.getElementById('camera-grid').style.gridTemplateRows = 'repeat(2, 1fr)';
+        
+        // Show all cameras
+        document.querySelectorAll('.camera-cell').forEach(cell => {
+          cell.style.display = 'block';
+        });
+      } else if (layout === 'single') {
+        document.getElementById('single-layout-btn').classList.add('active');
+        document.getElementById('camera-grid').style.gridTemplateColumns = '1fr';
+        document.getElementById('camera-grid').style.gridTemplateRows = '1fr';
+        
+        // Show only active camera
+        document.querySelectorAll('.camera-cell').forEach(cell => {
+          if (cell.dataset.camId === activeCamera) {
+            cell.style.display = 'block';
+          } else {
+            cell.style.display = 'none';
+          }
+        });
+      }
+    }
+    
+    // Toggle fullscreen for the entire grid
+    function toggleFullscreenGrid() {
+      const gridContainer = document.querySelector('.camera-grid-container');
+      
+      if (!document.fullscreenElement) {
+        if (gridContainer.requestFullscreen) {
+          gridContainer.requestFullscreen();
+        } else if (gridContainer.webkitRequestFullscreen) {
+          gridContainer.webkitRequestFullscreen();
+        } else if (gridContainer.msRequestFullscreen) {
+          gridContainer.msRequestFullscreen();
+        }
+        
+        document.getElementById('fullscreen-btn').innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        
+        document.getElementById('fullscreen-btn').innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      }
+    }
+    
+    // Load a camera stream
+    function loadCamera(camId) {
+      if (!camId || streamStatus[camId].loading) return;
+      
+      // Mark camera as loading
+      streamStatus[camId].loading = true;
+      streamStatus[camId].progress = 0;
+      
+      // Update loading progress bar
+      updateLoadingProgress(camId, 0);
+      
+      // Connect to WebSocket for this camera
+      const wsProtocol = (location.protocol === 'https:') ? 'wss:' : 'ws:';
+      const wsUrl = wsProtocol + '//' + location.host + '/ws/video_feed/' + camId;
+      const socket = new WebSocket(wsUrl);
+      socket.binaryType = "arraybuffer";
+      
+      // Set timeout for connection
+      const connectionTimeout = setTimeout(() => {
+        if (!streamStatus[camId].loaded) {
+          updateCameraStatus(camId, 'Connection Timeout');
+          streamStatus[camId].error = true;
+          socket.close();
+        }
+      }, 15000);
+      
+      // Track connection progress
+      let progressInterval = setInterval(() => {
+        if (streamStatus[camId].loaded || streamStatus[camId].error) {
+          clearInterval(progressInterval);
+          return;
+        }
+        
+        // Increment progress (slower at the beginning, faster towards the end)
+        if (streamStatus[camId].progress < 90) {
+          streamStatus[camId].progress += (streamStatus[camId].progress < 50) ? 1 : 2;
+          updateLoadingProgress(camId, streamStatus[camId].progress);
+        }
+      }, 100);
+      
+      // WebSocket event handlers
+      socket.onopen = function() {
+        console.log("WebSocket connected for camera " + camId);
+        updateCameraStatus(camId, 'Connecting...');
+        streamStatus[camId].progress = 10;
+        updateLoadingProgress(camId, 10);
+      };
+      
+      socket.onmessage = function(event) {
+        // Clear timeout on first message
+        clearTimeout(connectionTimeout);
+        
+        const blob = new Blob([event.data], { type: 'image/jpeg' });
+        const url = URL.createObjectURL(blob);
+        const imgEl = document.getElementById("streamImg_" + camId);
+        
+        if (imgEl) {
+          // Set the image source
+          imgEl.src = url;
+          
+          // When image loads
+          imgEl.onload = function() {
+            // If this is the first load for this camera
+            if (!streamStatus[camId].loaded) {
+              // Mark as loaded
+              streamStatus[camId].loaded = true;
+              streamStatus[camId].loading = false;
+              streamStatus[camId].progress = 100;
+              
+              // Update UI
+              updateLoadingProgress(camId, 100);
+              updateCameraStatus(camId, 'Online');
+              
+              // Fade in the image
+              imgEl.style.opacity = '1';
+              imgEl.style.transition = 'opacity 0.5s ease';
+              
+              // Hide placeholder and spinner
+              document.getElementById(`placeholder_${camId}`).style.display = 'none';
+              document.getElementById(`spinnerOverlay_${camId}`).style.display = 'none';
+              
+              // Clear intervals
+              clearInterval(progressInterval);
+              
+              // Initialize canvas for object detection
+              initializeDetectionCanvas(camId);
+            }
+          };
+        }
+      };
+      
+      socket.onclose = function() {
+        console.log("WebSocket disconnected for camera " + camId);
+        
+        updateCameraStatus(camId, 'Offline');
+        streamStatus[camId].error = true;
+        
+        // Show error in placeholder
+        const placeholder = document.getElementById(`placeholder_${camId}`);
+        placeholder.innerHTML = `
+          <i class="fas fa-exclamation-triangle placeholder-icon" style="color: var(--danger-color);"></i>
+          <p class="placeholder-text">Connection lost to ${cameras[camId].name}.<br>
+          <button class="btn btn-sm btn-light mt-3" onclick="retryConnection('${camId}')">
+            <i class="fas fa-sync-alt me-2"></i>Retry Connection
+          </button></p>
+        `;
+        placeholder.style.display = 'flex';
+        
+        // Hide spinner
+        document.getElementById(`spinnerOverlay_${camId}`).style.display = 'none';
+        
+        // Clear intervals
+        clearInterval(progressInterval);
+      };
+      
+      socket.onerror = function(error) {
+        console.error("WebSocket error for camera " + camId, error);
+        updateCameraStatus(camId, 'Error');
+        streamStatus[camId].error = true;
+        
+        // Show error in placeholder
+        const placeholder = document.getElementById(`placeholder_${camId}`);
+        placeholder.innerHTML = `
+          <i class="fas fa-exclamation-triangle placeholder-icon" style="color: var(--danger-color);"></i>
+          <p class="placeholder-text">Error connecting to ${cameras[camId].name}.<br>
+          <button class="btn btn-sm btn-light mt-3" onclick="retryConnection('${camId}')">
+            <i class="fas fa-sync-alt me-2"></i>Retry Connection
+          </button></p>
+        `;
+        placeholder.style.display = 'flex';
+        
+        // Hide spinner
+        document.getElementById(`spinnerOverlay_${camId}`).style.display = 'none';
+        
+        // Clear intervals
+        clearInterval(progressInterval);
+      };
+    }
+    
+    // Initialize canvas for object detection
+    function initializeDetectionCanvas(camId) {
+      const canvas = document.getElementById(`overlayCanvas_${camId}`);
+      const container = canvas.parentElement;
+      
+      // Resize canvas to match the container
+      function resizeCanvas() {
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+      
+      // Initial resize
+      resizeCanvas();
+      
+      // Resize on window resize
+      window.addEventListener('resize', resizeCanvas);
+    }
+    
+    // Start detection count updates
+    function startDetectionCountUpdates() {
+      // Update detection counts every second
+      setInterval(() => {
+        Object.keys(cameras).forEach(camId => {
+          if (streamStatus[camId].loaded) {
+            updateDetectionCounts(camId);
+          }
+        });
+      }, 1000);
+    }
+    
+    // Update detection counts
+    function updateDetectionCounts(camId) {
+      fetch(`/get_counts/${camId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.counts) {
+            // Update count display
+            document.getElementById(`carCount_${camId}`).textContent = data.counts.car || 0;
+            document.getElementById(`motorcycleCount_${camId}`).textContent = data.counts.motorcycle || 0;
+            document.getElementById(`truckCount_${camId}`).textContent = data.counts.truck || 0;
+            document.getElementById(`busCount_${camId}`).textContent = data.counts.bus || 0;
+            document.getElementById(`personCount_${camId}`).textContent = data.counts.person || 0;
+            document.getElementById(`bicycleCount_${camId}`).textContent = data.counts.bicycle || 0;
+          }
+        })
+        .catch(error => console.error("Error fetching detection counts:", error));
+    }
+    
+    // Retry connection to a camera
+    function retryConnection(camId) {
+      // Reset status
+      streamStatus[camId].loaded = false;
+      streamStatus[camId].loading = false;
+      streamStatus[camId].error = false;
+      
+      // Show spinner again
+      document.getElementById(`spinnerOverlay_${camId}`).style.display = 'flex';
+      
+      // Update placeholder
+      const placeholder = document.getElementById(`placeholder_${camId}`);
+      placeholder.innerHTML = `
+        <i class="fas fa-video placeholder-icon"></i>
+        <p class="placeholder-text">${cameras[camId].name} stream is loading...</p>
+      `;
+      
+      // Start loading
+      loadCamera(camId);
+    }
+    
+    // Update loading progress bar
+    function updateLoadingProgress(camId, progress) {
+      const progressBar = document.getElementById(`loadingProgress_${camId}`);
+      if (progressBar) {
+        progressBar.style.width = `${progress}%`;
+        
+        // Change color based on progress
+        if (progress < 30) {
+          progressBar.style.background = 'linear-gradient(90deg, var(--danger-color), var(--warning-color))';
+        } else if (progress < 70) {
+          progressBar.style.background = 'linear-gradient(90deg, var(--warning-color), var(--primary-color))';
+        } else {
+          progressBar.style.background = 'linear-gradient(90deg, var(--primary-color), var(--success-color))';
+        }
+        
+        // Hide when complete
+        if (progress >= 100) {
+          setTimeout(() => {
+            progressBar.style.opacity = '0';
+            setTimeout(() => {
+              progressBar.style.width = '0%';
+            }, 500);
+          }, 500);
+        }
+      }
+    }
+    
+    // Update camera status in the UI
+    function updateCameraStatus(camId, status) {
+      const statusEl = document.getElementById("status_" + camId);
+      if (statusEl) {
+        statusEl.textContent = status;
+        
+        // Set color based on status
+        if (status === 'Online') {
+          statusEl.style.color = 'var(--success-color)';
+        } else if (status === 'Offline') {
+          statusEl.style.color = 'var(--danger-color)';
+        } else if (status === 'Error' || status === 'Connection Timeout') {
+          statusEl.style.color = 'var(--danger-color)';
+        } else {
+          statusEl.style.color = 'var(--warning-color)'; // Connecting, etc.
+        }
+      }
+    }
+    
+    // Update polygon for active camera
+    function updatePolygon(camId) {
+      // Clear any existing polygon drawing mode
+      const currentCanvas = document.getElementById("overlayCanvas_" + camId);
+      if (window.isDrawingEnabled) {
+        disableDrawing(currentCanvas);
+      }
+      
+      // Fetch polygon data for the active camera
+      fetch("/get_polygon/" + camId)
+      .then(response => response.json())
+      .then(data => { 
+        window.polygonPoints = data.polygon.points || []; 
+        redrawCanvas(currentCanvas); 
+      })
+      .catch(err => {
+        console.error("Error fetching polygon data:", err);
+        window.polygonPoints = [];
+        redrawCanvas(currentCanvas);
+      });
+    }
+    
+    // URL parameter handling
+    function updateQueryParameter(key, value) {
+      var baseUrl = [location.protocol, '//', location.host, location.pathname].join('');
+      var urlQueryString = document.location.search;
+      var newParam = key + '=' + value,
+          params = '?' + newParam;
+      if (urlQueryString) {
+        var keyRegex = new RegExp('([?&])' + key + '[^&]*');
+        if (urlQueryString.match(keyRegex)) {
+          params = urlQueryString.replace(keyRegex, "$1" + newParam);
+        } else {
+          params = urlQueryString + '&' + newParam;
+        }
+      }
+      return baseUrl + params;
+    }
+    
+    // Resolution handling with animation
+    function setResolution(res) {
+      if(confirm('Apakah Anda yakin ingin mengubah resolusi ke ' + res + '?')) {
+        // Show loading animation on all cameras
+        document.querySelectorAll('.spinner-overlay').forEach(spinner => {
+          spinner.style.display = 'flex';
+        });
+        
+        localStorage.setItem('currentResolution', res);
+        
+        // Update resolution display before page reload
+        document.querySelectorAll('[id^="resolution_"]').forEach(el => {
+          el.textContent = res;
+        });
+        
+        // Add a slight delay for better UX
+        setTimeout(() => {
+          window.location.href = updateQueryParameter('resolution', res);
+        }, 500);
+      }
+    }
+    
+    // Reset data with confirmation and animation
+    function resetData() {
+      if(confirm("Anda yakin ingin mereset semua data?")){
+        // Show loading animation
+        const resetBtn = document.getElementById('resetDataBtn');
+        resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Resetting...';
+        resetBtn.disabled = true;
+        
+        fetch("/reset_data", { method: "POST" })
+          .then(response => response.json())
+          .then(data => { 
+            // Success animation
+            resetBtn.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+            setTimeout(() => {
+              alert(data.message); 
+              location.reload();
+            }, 1000);
+          })
+          .catch(err => { 
+            console.error(err); 
+            resetBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+            setTimeout(() => {
+              alert("Terjadi kesalahan saat mereset data.");
+              resetBtn.innerHTML = '<i class="fas fa-trash-alt me-2"></i>Reset Data';
+              resetBtn.disabled = false;
+            }, 1000);
+          });
+      }
+    }
+    
+    // Polygon handling functions
+    function startPolygon() { 
+      // Visual feedback
+      const polygonCard = document.querySelector('[data-bs-target="#submenu-polygon"]');
+      polygonCard.style.animation = 'pulse 0.5s';
+      setTimeout(() => { polygonCard.style.animation = ''; }, 500);
+      
+      document.getElementById("startPolygonBtn").click(); 
+    }
+    
+    function savePolygon() { 
+      document.getElementById("savePolygonBtn").click(); 
+    }
+    
+    function resetPolygon() { 
+      document.getElementById("resetPolygonBtn").click(); 
+    }
+    
+    // Model switching with animation
+    function switchModel(model) {
+      // Show loading animation on all cameras
+      document.querySelectorAll('.spinner-overlay').forEach(spinner => {
+        spinner.style.display = 'flex';
+        spinner.querySelector('.spinner').style.borderTopColor = 'var(--primary-color)';
+      });
+      
+      fetch('/switch_model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: model })
+      }).then(response => response.json())
+      .then(data => { 
+        // Success animation
+        const modelItems = document.querySelectorAll('#submenu-model .submenu-item');
+        modelItems.forEach(item => {
+          if (item.textContent.includes(model)) {
+            item.style.backgroundColor = 'rgba(56, 176, 0, 0.1)';
+            item.style.color = 'var(--success-color)';
+            item.style.fontWeight = 'bold';
+          } else {
+            item.style.backgroundColor = '';
+            item.style.color = '';
+            item.style.fontWeight = '';
+          }
+        });
+        
+        setTimeout(() => {
+          alert(data.message);
+          window.location.reload();
+        }, 1000);
+      })
+      .catch(err => {
+        console.error("Error switching model:", err);
+        alert("Terjadi kesalahan saat mengganti model.");
+        
+        // Hide loading animations
+        document.querySelectorAll('.spinner-overlay').forEach(spinner => {
+          spinner.style.display = 'none';
+        });
+      });
+    }
+    
+    // Fullscreen toggle function for individual camera
+    function toggleFullscreen(imgId) {
+      const img = document.getElementById(imgId);
+      if (!document.fullscreenElement) {
+        if (img.requestFullscreen) {
+          img.requestFullscreen();
+        } else if (img.webkitRequestFullscreen) {
+          img.webkitRequestFullscreen();
+        } else if (img.msRequestFullscreen) {
+          img.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+    
+    // Snapshot capture function
+    function captureSnapshot(imgId) {
+      const img = document.getElementById(imgId);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      // Create a download link
+      const link = document.createElement('a');
+      link.download = 'cctv-snapshot-' + new Date().toISOString() + '.jpg';
+      link.href = canvas.toDataURL('image/jpeg', 0.8);
+      link.click();
+      
+      // Visual feedback
+      const feedbackDiv = document.createElement('div');
+      feedbackDiv.style.position = 'fixed';
+      feedbackDiv.style.top = '20px';
+      feedbackDiv.style.left = '50%';
+      feedbackDiv.style.transform = 'translateX(-50%)';
+      feedbackDiv.style.background = 'rgba(56, 176, 0, 0.9)';
+      feedbackDiv.style.color = 'white';
+      feedbackDiv.style.padding = '10px 20px';
+      feedbackDiv.style.borderRadius = '5px';
+      feedbackDiv.style.zIndex = '9999';
+      feedbackDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+      feedbackDiv.innerHTML = '<i class="fas fa-check me-2"></i>Snapshot saved!';
+      
+      document.body.appendChild(feedbackDiv);
+      setTimeout(() => {
+        feedbackDiv.style.opacity = '0';
+        feedbackDiv.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          document.body.removeChild(feedbackDiv);
+        }, 500);
+      }, 2000);
+    }
+    
+    // Polygon drawing functionality
+    document.addEventListener("DOMContentLoaded", function() {
+      window.polygonPoints = [];
+      window.isDrawingEnabled = false;
+      
+      window.enableDrawing = function(canvas) {
+        window.isDrawingEnabled = true;
+        canvas.addEventListener("click", canvasClickHandler);
+        canvas.style.cursor = "crosshair";
+        
+        // Visual feedback
+        canvas.style.border = '2px dashed var(--primary-color)';
+        
+        // Add instruction overlay
+        const instructionDiv = document.createElement('div');
+        instructionDiv.id = 'drawing-instructions';
+        instructionDiv.style.position = 'absolute';
+        instructionDiv.style.top = '10px';
+        instructionDiv.style.left = '10px';
+        instructionDiv.style.background = 'rgba(0,0,0,0.7)';
+        instructionDiv.style.color = 'white';
+        instructionDiv.style.padding = '8px 12px';
+        instructionDiv.style.borderRadius = '5px';
+        instructionDiv.style.fontSize = '0.9rem';
+        instructionDiv.style.zIndex = '10';
+        instructionDiv.innerHTML = '<i class="fas fa-info-circle me-2"></i>Click to add points. When finished, click "Simpan Area"';
+        
+        canvas.parentNode.appendChild(instructionDiv);
+      }
+      
+      window.disableDrawing = function(canvas) {
+        window.isDrawingEnabled = false;
+        canvas.removeEventListener("click", canvasClickHandler);
+        canvas.style.cursor = "default";
+        canvas.style.border = 'none';
+        
+        // Remove instruction overlay
+        const instructionDiv = document.getElementById('drawing-instructions');
+        if (instructionDiv) {
+          instructionDiv.parentNode.removeChild(instructionDiv);
+        }
+      }
+      
+      function canvasClickHandler(event) {
+        const rect = this.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // Add point with animation
+        window.polygonPoints.push({x, y});
+        
+        // Visual feedback for point addition
+        const pointMarker = document.createElement('div');
+        pointMarker.style.position = 'absolute';
+        pointMarker.style.left = (x - 5) + 'px';
+        pointMarker.style.top = (y - 5) + 'px';
+        pointMarker.style.width = '10px';
+        pointMarker.style.height = '10px';
+        pointMarker.style.borderRadius = '50%';
+        pointMarker.style.backgroundColor = 'var(--accent-color)';
+        pointMarker.style.transform = 'scale(1.5)';
+        pointMarker.style.opacity = '0.8';
+        pointMarker.style.transition = 'all 0.3s ease';
+        pointMarker.style.zIndex = '5';
+        
+        this.parentNode.appendChild(pointMarker);
+        
+        setTimeout(() => {
+          pointMarker.style.transform = 'scale(1)';
+          pointMarker.style.opacity = '0';
+          setTimeout(() => {
+            if (pointMarker.parentNode) {
+              pointMarker.parentNode.removeChild(pointMarker);
+            }
+          }, 300);
+        }, 300);
+        
+        redrawCanvas(this);
+      }
+      
+      window.redrawCanvas = function(canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if(window.polygonPoints.length > 0) {
+          // Draw filled polygon with transparency
+          if (window.polygonPoints.length > 2) {
+            ctx.fillStyle = "rgba(58, 134, 255, 0.2)";
+            ctx.beginPath();
+            ctx.moveTo(window.polygonPoints[0].x, window.polygonPoints[0].y);
+            for(let i = 1; i < window.polygonPoints.length; i++) {
+              ctx.lineTo(window.polygonPoints[i].x, window.polygonPoints[i].y);
+            }
+            ctx.closePath();
+            ctx.fill();
+          }
+          
+          // Draw lines
+          ctx.strokeStyle = "var(--primary-color)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(window.polygonPoints[0].x, window.polygonPoints[0].y);
+          for(let i = 1; i < window.polygonPoints.length; i++) {
+            ctx.lineTo(window.polygonPoints[i].x, window.polygonPoints[i].y);
+          }
+          
+          // Close the polygon if we have more than 2 points
+          if (window.polygonPoints.length > 2) {
+            ctx.lineTo(window.polygonPoints[0].x, window.polygonPoints[0].y);
+          }
+          
+          ctx.stroke();
+          
+          // Draw points
+          window.polygonPoints.forEach((pt, index) => {
+            ctx.fillStyle = index === 0 ? "var(--accent-color)" : "var(--primary-color)";
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add point number
+            ctx.fillStyle = "white";
+            ctx.font = "10px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(index + 1, pt.x, pt.y);
+          });
+        }
+      }
+      
+      // Hidden buttons for polygon functionality
+      const hiddenButtons = `
+        <button id="startPolygonBtn" style="display:none;">Start Polygon</button>
+        <button id="savePolygonBtn" style="display:none;">Save Polygon</button>
+        <button id="resetPolygonBtn" style="display:none;">Reset Polygon</button>
+      `;
+      document.body.insertAdjacentHTML('beforeend', hiddenButtons);
+      
+      document.getElementById("startPolygonBtn").addEventListener("click", function() {
+        const currentCanvas = document.getElementById("overlayCanvas_" + activeCamera);
+        window.polygonPoints = [];
+        window.enableDrawing(currentCanvas);
+      });
+      
+      document.getElementById("savePolygonBtn").addEventListener("click", function() {
+        const currentCanvas = document.getElementById("overlayCanvas_" + activeCamera);
+        if(currentCanvas && window.isDrawingEnabled) {
+          window.disableDrawing(currentCanvas);
+          
+          // Show saving animation
+          const savingOverlay = document.createElement('div');
+          savingOverlay.style.position = 'absolute';
+          savingOverlay.style.top = '0';
+          savingOverlay.style.left = '0';
+          savingOverlay.style.width = '100%';
+          savingOverlay.style.height = '100%';
+          savingOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+          savingOverlay.style.display = 'flex';
+          savingOverlay.style.alignItems = 'center';
+          savingOverlay.style.justifyContent = 'center';
+          savingOverlay.style.zIndex = '10';
+          savingOverlay.innerHTML = '<div style="background: white; padding: 20px; border-radius: 10px;"><i class="fas fa-spinner fa-spin me-2"></i>Menyimpan area...</div>';
+          
+          currentCanvas.parentNode.appendChild(savingOverlay);
+          
+          fetch("/set_polygon/" + activeCamera, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              points: window.polygonPoints, 
+              canvasWidth: currentCanvas.width, 
+              canvasHeight: currentCanvas.height 
+            })
+          }).then(response => response.json())
+          .then(data => { 
+            // Change saving animation to success
+            savingOverlay.innerHTML = '<div style="background: white; padding: 20px; border-radius: 10px; color: var(--success-color);"><i class="fas fa-check-circle me-2"></i>Area berhasil disimpan!</div>';
+            
+            setTimeout(() => {
+              if (savingOverlay.parentNode) {
+                savingOverlay.parentNode.removeChild(savingOverlay);
+              }
+              alert("Polygon disimpan.");
+            }, 1500);
+          })
+          .catch(err => { 
+            console.error(err); 
+            
+            // Change saving animation to error
+            savingOverlay.innerHTML = '<div style="background: white; padding: 20px; border-radius: 10px; color: var(--danger-color);"><i class="fas fa-exclamation-circle me-2"></i>Gagal menyimpan area!</div>';
+            
+            setTimeout(() => {
+              if (savingOverlay.parentNode) {
+                savingOverlay.parentNode.removeChild(savingOverlay);
+              }
+              alert("Error menyimpan polygon.");
+            }, 1500);
+          });
+        }
+      });
+      
+      document.getElementById("resetPolygonBtn").addEventListener("click", function() {
+        const currentCanvas = document.getElementById("overlayCanvas_" + activeCamera);
+        if(currentCanvas) {
+          window.polygonPoints = [];
+          redrawCanvas(currentCanvas);
+          
+          if (window.isDrawingEnabled) {
+            window.disableDrawing(currentCanvas);
+          }
+          
+          fetch("/delete_polygon/" + activeCamera, { method: "POST" })
+          .then(response => response.json())
+          .then(data => { 
+            // Visual feedback
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.style.position = 'absolute';
+            feedbackDiv.style.top = '50%';
+            feedbackDiv.style.left = '50%';
+            feedbackDiv.style.transform = 'translate(-50%, -50%)';
+            feedbackDiv.style.background = 'rgba(255, 0, 110, 0.9)';
+            feedbackDiv.style.color = 'white';
+            feedbackDiv.style.padding = '15px 25px';
+            feedbackDiv.style.borderRadius = '5px';
+            feedbackDiv.style.zIndex = '999';
+            feedbackDiv.innerHTML = '<i class="fas fa-trash-alt me-2"></i>Area berhasil dihapus!';
+            
+            currentCanvas.parentNode.appendChild(feedbackDiv);
+            
+            setTimeout(() => {
+              feedbackDiv.style.opacity = '0';
+              feedbackDiv.style.transition = 'opacity 0.5s ease';
+              setTimeout(() => {
+                if (feedbackDiv.parentNode) {
+                  feedbackDiv.parentNode.removeChild(feedbackDiv);
+                }
+                alert("Polygon dihapus.");
+              }, 500);
+            }, 1500);
+          });
+        }
+      });
+      
+      // Add animation to submenu collapse/expand
+      document.querySelectorAll('.control-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-bs-target');
+          const submenu = document.querySelector(targetId);
+          
+          // Close all other open submenus
+          document.querySelectorAll('.submenu.show').forEach(menu => {
+            if (menu.id !== targetId.substring(1)) {
+              menu.classList.remove('show');
+            }
+          });
+        });
+      });
+      
+      // Load current resolution from localStorage if available
+      const savedResolution = localStorage.getItem('currentResolution');
+      if (savedResolution) {
+        document.querySelectorAll('[id^="resolution_"]').forEach(el => {
+          el.textContent = savedResolution;
+        });
+      }
+    });
+    
+    // Add keyframe animations
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  </script>
+</body>
+</html>

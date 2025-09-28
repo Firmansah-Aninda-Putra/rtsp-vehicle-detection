@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ camera.name }} - CCTV Monitoring</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Charts Loader -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: rgb(232,232,232);
+      color: #000;
+      overflow-x: hidden;
+    }
+    .full-page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Navbar */
+    nav.navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-height: 56px;
+    }
+    nav.navbar .navbar-brand img {
+      height: 40px;
+      object-fit: contain;
+    }
+    nav.navbar .navbar-nav .nav-link {
+      color: #333 !important;
+      font-weight: 400;
+      margin: 0 10px;
+    }
+    nav.navbar .navbar-nav .nav-link:hover {
+      color: #007bff !important;
+    }
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    .row-full {
+      height: 100%;
+    }
+    /* Panel Kiri: Info Cards */
+    .info-cards {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .location-card {
+      flex: 0 0 150px;
+      margin-bottom: 1rem;
+    }
+    .detection-card {
+      flex: 1;
+    }
+    /* Panel Tengah: Video Streaming & Polygon Drawing */
+    .middle-panel {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .video-stream {
+      flex: 1;
+      position: relative;
+      background-color: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #streamImg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    /* Canvas untuk overlay (hasil deteksi backend) */
+    #overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    /* Canvas untuk menggambar polygon interaktif */
+    #drawCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 6;
+      cursor: crosshair;
+    }
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid transparent;
+      border-top-color: green;
+      border-radius: 50%;
+      animation: spinCycle 1s linear infinite;
+    }
+    @keyframes spinCycle {
+      0% { transform: rotate(0deg); border-top-color: green; }
+      25% { transform: rotate(90deg); border-top-color: yellow; }
+      50% { transform: rotate(180deg); border-top-color: blue; }
+      75% { transform: rotate(270deg); border-top-color: red; }
+      100% { transform: rotate(360deg); border-top-color: green; }
+    }
+    /* Menu Cards di bawah video streaming */
+    .polygon-menu {
+      flex: 0 0 60px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 10px;
+    }
+    .menu-item {
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .menu-item:hover {
+      background-color: #f0f0f0;
+    }
+    .menu-item.active {
+      background-color: #e3f2fd;
+      color: #0d6efd;
+      box-shadow: 0 0 0 2px #0d6efd;
+    }
+    .menu-item i {
+      font-size: 1.25rem;
+    }
+    /* Panel Kanan: Counting Cards */
+    .counting-cards {
+      background-color: #fff;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      height: 100%;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .counting-cards .card-body {
+      flex: 1;
+      overflow: hidden;
+      padding: 20px;
+    }
+    .counting-cards h5 {
+      text-align: center;
+      color: rgb(136,33,78);
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .counting-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .counting-row:last-child {
+      border-bottom: none;
+    }
+    .icon-car { color: blue; }      .count-car { color: blue; }
+    .icon-motorcycle { color: orange; }  .count-motorcycle { color: orange; }
+    .icon-truck { color: red; }      .count-truck { color: red; }
+    .icon-bus { color: purple; }     .count-bus { color: purple; }
+    .icon-person { color: green; }   .count-person { color: green; }
+    .icon-bicycle { color: teal; }   .count-bicycle { color: teal; }
+    .label { font-weight: bold; }
+    #barchart {
+      flex: 1;
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      .main-content { overflow-y: auto; }
+      .full-page { min-height: 100vh; }
+      .video-stream { aspect-ratio: 16 / 9; min-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="full-page">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+          <img src="/static/images/pantau.jpeg" alt="Pantau Madiun">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/data">Data Deteksi</a>
+            <a class="nav-link" href="/all">Deteksi Semua CCTV</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container-fluid h-100">
+        <div class="row row-full g-3 align-items-stretch">
+          <!-- Panel Kiri: Info Cards -->
+          <div class="col-lg-3 d-flex flex-column">
+            <div class="info-cards w-100">
+              <div class="card shadow-sm location-card">
+                <div class="card-header">Lokasi</div>
+                <div class="card-body">
+                  <h4 style="margin: 0; font-weight: bold; text-align: center;">{{ camera.name }}</h4>
+                  <p style="text-align: center; margin-top: 0.5rem;">{{ camera.location }}</p>
+                  <div class="d-flex justify-content-center">
+                    <a href="https://www.google.com/maps/place/{{ camera.location }}" target="_blank" class="btn btn-primary mt-2">Buka Google Maps</a>
+                  </div>
+                </div>
+              </div>
+              <div class="card shadow-sm detection-card">
+                <div class="card-header">Detection Percentages</div>
+                <div class="card-body d-flex">
+                  <div id="barchart" class="w-100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Panel Tengah: Video Streaming & Polygon Drawing -->
+          <div class="col-lg-6 d-flex flex-column">
+            <div class="middle-panel w-100">
+              <div id="videoContainer" class="video-stream">
+                <div class="spinner-overlay">
+                  <div class="spinner"></div>
+                </div>
+                <img id="streamImg" alt="" class="w-100 h-100">
+                <canvas id="overlayCanvas"></canvas>
+                <!-- Canvas untuk menggambar polygon interaktif -->
+                <canvas id="drawCanvas"></canvas>
+              </div>
+              <!-- Menu Cards -->
+              <div class="polygon-menu">
+                <div class="menu-item" onclick="prevCamera()">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </div>
+                <div class="menu-item" id="drawBtn" onclick="toggleDraw()">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <div class="menu-item" onclick="finishPolygon()">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <div class="menu-item" onclick="clearPolygon()">
+                  <i class="fa-solid fa-trash"></i>
+                </div>
+                <div class="menu-item" onclick="window.location.href='/'">
+                  <i class="fa-solid fa-house"></i>
+                </div>
+                <div class="menu-item" onclick="nextCamera()">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </div>
+              </div>
+              <div class="select-model">
+                <div class="input-group">
+                  <label class="input-group-text" for="modelSelect">Pilih Model:</label>
+                  <select class="form-select" id="modelSelect">
+                    <option value="yolov8s">YOLOv8s (Recommmended)</option>
+                    <option value="yolov8x">YOLOv8x (Best Performance)</option>
+                    <option value="yolov8n">YOLOv8n (For Low End Desktop)</option>
+                    <option value="yolov8m">YOLOv8m (Better Performance)</option>
+                  </select>
+                  <button class="btn btn-primary" id="switchModelBtn">Switch Model</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Panel Kanan: Counting Cards -->
+          <div class="col-lg-3 d-flex flex-column">
+            <div class="counting-cards w-100">
+              <div style="position: relative; background: url('/static/images/kota madiun.jpeg') no-repeat center center; background-size: cover; height: 220px;"></div>
+              <div style="background-color: #fff; text-align: center; padding: 20px;">
+                <h4 style="margin: 0; font-weight: bold;">PPID KOTA MADIUN</h4>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title text-center">DATA JUMLAH KENDARAAN</h5>
+                <div class="counting-row">
+                  <i class="fa-solid fa-car detection-icon icon-car"></i>
+                  <span class="detection-count count-car">0</span>
+                  <span class="label">Mobil</span>
+                </div>
+                <div class="counting-row">
+                  <i class="fa-solid fa-motorcycle detection-icon icon-motorcycle"></i>
+                  <span class="detection-count count-motorcycle">0</span>
+                  <span class="label">Motor</span>
+                </div>
+                <div class="counting-row">
+                  <i class="fa-solid fa-truck detection-icon icon-truck"></i>
+                  <span class="detection-count count-truck">0</span>
+                  <span class="label">Truk</span>
+                </div>
+                <div class="counting-row">
+                  <i class="fa-solid fa-bus detection-icon icon-bus"></i>
+                  <span class="detection-count count-bus">0</span>
+                  <span class="label">Bus</span>
+                </div>
+                <div class="counting-row">
+                  <i class="fa-solid fa-user detection-icon icon-person"></i>
+                  <span class="detection-count count-person">0</span>
+                  <span class="label">Orang</span>
+                </div>
+                <div class="counting-row">
+                  <i class="fa-solid fa-bicycle detection-icon icon-bicycle"></i>
+                  <span class="detection-count count-bicycle">0</span>
+                  <span class="label">Sepeda</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div><!-- /.main-content -->
+  </div><!-- /.full-page -->
+  
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Inisialisasi Google Charts -->
+  <script>
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawBarChart);
+    let barChartData = [
+      ['Objek', 'Persentase', { role: 'annotation' }]
+    ];
+    let barChart;
+    const barChartOptions = {
+      title: 'Detection Percentages',
+      legend: { position: 'bottom' },
+      hAxis: { title: 'Objek' },
+      vAxis: { title: 'Persentase (%)' }
+    };
+    function drawBarChart() {
+      var data = google.visualization.arrayToDataTable(barChartData);
+      barChart = new google.visualization.ColumnChart(document.getElementById('barchart'));
+      barChart.draw(data, barChartOptions);
+    }
+    // Update bar chart secara berkala
+    setInterval(() => {
+      fetch(`/get_counts/{{ cam_id }}`)
+        .then(response => response.json())
+        .then(data => {
+          let counts = data.counts || { car: 0, motorcycle: 0, truck: 0, bus: 0, person: 0, bicycle: 0 };
+          let total = counts.car + counts.motorcycle + counts.truck + counts.bus + counts.person + counts.bicycle;
+          let newData = [
+            ['Objek', 'Persentase', { role: 'annotation' }],
+            ['Mobil', total > 0 ? Math.round(counts.car / total * 100) : 0, total > 0 ? Math.round(counts.car / total * 100) + '%' : '0%'],
+            ['Motor', total > 0 ? Math.round(counts.motorcycle / total * 100) : 0, total > 0 ? Math.round(counts.motorcycle / total * 100) + '%' : '0%'],
+            ['Truk', total > 0 ? Math.round(counts.truck / total * 100) : 0, total > 0 ? Math.round(counts.truck / total * 100) + '%' : '0%'],
+            ['Bus', total > 0 ? Math.round(counts.bus / total * 100) : 0, total > 0 ? Math.round(counts.bus / total * 100) + '%' : '0%'],
+            ['Orang', total > 0 ? Math.round(counts.person / total * 100) : 0, total > 0 ? Math.round(counts.person / total * 100) + '%' : '0%'],
+            ['Sepeda', total > 0 ? Math.round(counts.bicycle / total * 100) : 0, total > 0 ? Math.round(counts.bicycle / total * 100) + '%' : '0%']
+          ];
+          barChartData = newData;
+          drawBarChart();
+        })
+        .catch(error => console.error("Error updating bar chart:", error));
+    }, 1000);
+  </script>
+  
+  <!-- WebSocket untuk Streaming Video -->
+  <script>
+    const camId = "{{ cam_id }}";
+    const wsUrl = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + '/ws/video_feed/' + camId;
+    const socket = new WebSocket(wsUrl);
+    socket.binaryType = "arraybuffer";
+    socket.onopen = function() { console.log("WebSocket connected for camera " + camId); };
+    socket.onmessage = function(event) {
+      const blob = new Blob([event.data], { type: 'image/jpeg' });
+      document.getElementById("streamImg").src = URL.createObjectURL(blob);
+    };
+    socket.onclose = function() { console.log("WebSocket disconnected for camera " + camId); };
+    socket.onerror = function(error) { console.error("WebSocket error:", error); };
+    document.getElementById('streamImg').addEventListener('load', function() {
+      document.querySelector('.spinner-overlay').style.display = 'none';
+    });
+  </script>
+  
+  <!-- Polygon Drawing and Camera Navigation Scripts -->
+  <script>
+    // Sesuaikan ukuran canvas dengan video streaming
+    function adjustCanvasSize() {
+      const streamImg = document.getElementById("streamImg");
+      const drawCanvas = document.getElementById("drawCanvas");
+      const overlayCanvas = document.getElementById("overlayCanvas");
+      drawCanvas.width = streamImg.clientWidth;
+      drawCanvas.height = streamImg.clientHeight;
+      overlayCanvas.width = streamImg.clientWidth;
+      overlayCanvas.height = streamImg.clientHeight;
+    }
+    document.getElementById("streamImg").addEventListener("load", adjustCanvasSize);
+    window.addEventListener("resize", adjustCanvasSize);
+    
+    // Polygon Drawing
+    let polygonPoints = [];
+    const drawCanvas = document.getElementById('drawCanvas');
+    const drawCtx = drawCanvas.getContext('2d');
+    const drawBtn = document.getElementById('drawBtn');
+    let drawMode = false;
+    
+    function updateDrawButtonUI() {
+      if (drawMode) {
+        drawBtn.classList.add('active');
+        drawCanvas.style.cursor = 'crosshair';
+      } else {
+        drawBtn.classList.remove('active');
+        drawCanvas.style.cursor = 'default';
+      }
+    }
+    
+    function redrawPolygon() {
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      if (polygonPoints.length === 0) return;
+      drawCtx.beginPath();
+      polygonPoints.forEach((pt, idx) => {
+        if (idx === 0) {
+          drawCtx.moveTo(pt.x, pt.y);
+        } else {
+          drawCtx.lineTo(pt.x, pt.y);
+        }
+      });
+      if (!drawMode && polygonPoints.length >= 3) {
+        drawCtx.closePath();
+        drawCtx.fillStyle = "rgba(255, 0, 0, 0.2)";
+        drawCtx.fill();
+      }
+      drawCtx.strokeStyle = "red";
+      drawCtx.lineWidth = 2;
+      drawCtx.stroke();
+      polygonPoints.forEach((pt, idx) => {
+        drawCtx.beginPath();
+        drawCtx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
+        drawCtx.fillStyle = "red";
+        drawCtx.fill();
+        drawCtx.strokeStyle = "white";
+        drawCtx.lineWidth = 1;
+        drawCtx.stroke();
+        drawCtx.fillStyle = "white";
+        drawCtx.font = "10px Arial";
+        drawCtx.fillText(idx + 1, pt.x + 8, pt.y);
+      });
+    }
+    
+    function toggleDraw() {
+      drawMode = !drawMode;
+      updateDrawButtonUI();
+      console.log("Draw mode:", drawMode);
+    }
+    
+    // Fungsi finishPolygon yang diperbaiki dengan perhitungan scale dan offset
+    function finishPolygon() {
+      if (polygonPoints.length < 3) {
+        alert("Polygon minimal 3 titik.");
+        return;
+      }
+      drawMode = false;
+      updateDrawButtonUI();
+      redrawPolygon();
+      
+      const streamImg = document.getElementById("streamImg");
+      const clientWidth = streamImg.clientWidth;
+      const clientHeight = streamImg.clientHeight;
+      const naturalWidth = streamImg.naturalWidth;
+      const naturalHeight = streamImg.naturalHeight;
+      
+      // Hitung faktor scale yang digunakan oleh object-fit: cover
+      const scale = Math.max(clientWidth / naturalWidth, clientHeight / naturalHeight);
+      const displayedWidth = naturalWidth * scale;
+      const displayedHeight = naturalHeight * scale;
+      const offsetX = (displayedWidth - clientWidth) / 2;
+      const offsetY = (displayedHeight - clientHeight) / 2;
+      
+      // Konversi titik-titik dari koordinat tampilan (client) ke koordinat asli (natural)
+      const convertedPoints = polygonPoints.map(pt => [
+        (pt.x + offsetX) / scale,
+        (pt.y + offsetY) / scale
+      ]);
+      
+      const data = {
+        points: convertedPoints,
+        canvasWidth: naturalWidth,
+        canvasHeight: naturalHeight
+      };
+      
+      fetch(`/set_polygon/{{ cam_id }}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.status === "success") {
+          alert("Polygon berhasil disimpan.");
+          if (result.polygon && result.polygon.points) {
+            polygonPoints = result.polygon.points.map(pt =>
+              typeof pt[0] === 'number' ? {x: pt[0], y: pt[1]} : pt
+            );
+            redrawPolygon();
+          }
+        } else {
+          alert("Gagal menyimpan polygon: " + result.message);
+        }
+      })
+      .catch(error => {
+        console.error("Error saving polygon:", error);
+        alert("Terjadi kesalahan saat menyimpan polygon.");
+      });
+    }
+    
+    function clearPolygon() {
+      polygonPoints = [];
+      redrawPolygon();
+      fetch(`/delete_polygon/{{ cam_id }}`, { method: "POST" })
+      .then(response => response.json())
+      .then(result => {
+        if (result.status === "success") {
+          alert("Polygon dihapus.");
+        } else {
+          alert("Gagal menghapus polygon: " + result.message);
+        }
+      })
+      .catch(error => {
+        console.error("Error deleting polygon:", error);
+        alert("Terjadi kesalahan saat menghapus polygon.");
+      });
+    }
+    
+    drawCanvas.addEventListener("click", function(e) {
+      if (!drawMode) return;
+      const rect = drawCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (polygonPoints.length >= 3) {
+        const firstPoint = polygonPoints[0];
+        const distance = Math.hypot(x - firstPoint.x, y - firstPoint.y);
+        if (distance < 15) {
+          finishPolygon();
+          return;
+        }
+      }
+      polygonPoints.push({x: x, y: y});
+      redrawPolygon();
+    });
+    
+    drawCanvas.addEventListener("mousemove", function(e) {
+      if (!drawMode) return;
+      if (polygonPoints.length > 0) {
+        const rect = drawCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        redrawPolygon();
+        drawCtx.beginPath();
+        drawCtx.moveTo(polygonPoints[polygonPoints.length - 1].x, polygonPoints[polygonPoints.length - 1].y);
+        drawCtx.lineTo(x, y);
+        drawCtx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+        drawCtx.lineWidth = 1.5;
+        drawCtx.setLineDash([5, 3]);
+        drawCtx.stroke();
+        drawCtx.setLineDash([]);
+        if (polygonPoints.length >= 3) {
+          const firstPoint = polygonPoints[0];
+          const distance = Math.hypot(x - firstPoint.x, y - firstPoint.y);
+          if (distance < 15) {
+            drawCtx.beginPath();
+            drawCtx.arc(firstPoint.x, firstPoint.y, 8, 0, 2 * Math.PI);
+            drawCtx.fillStyle = "rgba(255, 255, 0, 0.5)";
+            drawCtx.fill();
+            drawCtx.strokeStyle = "yellow";
+            drawCtx.stroke();
+          }
+        }
+      }
+    });
+    
+    // Mendapatkan data polygon yang sudah ada saat halaman dimuat
+    window.addEventListener('load', function() {
+      fetch(`/get_polygon/{{ cam_id }}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.polygon && data.polygon.points && data.polygon.points.length >= 3) {
+            polygonPoints = data.polygon.points.map(pt => 
+              Array.isArray(pt) ? {x: pt[0], y: pt[1]} : pt
+            );
+            setTimeout(() => {
+              adjustCanvasSize();
+              redrawPolygon();
+            }, 500);
+          }
+        })
+        .catch(error => console.error("Error loading polygon data:", error));
+    });
+    
+    // Kamera Navigasi & Switch Model
+    function nextCamera() {
+      fetch("/next_camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current: "{{ cam_id }}" })
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.href = `/camera/${data.id}`;
+      })
+      .catch(error => console.error("Error:", error));
+    }
+    
+    function prevCamera() {
+      fetch("/prev_camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current: "{{ cam_id }}" })
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.href = `/camera/${data.id}`;
+      })
+      .catch(error => console.error("Error:", error));
+    }
+    
+    const switchModelBtn = document.getElementById("switchModelBtn");
+    const modelSelect = document.getElementById("modelSelect");
+    if (switchModelBtn && modelSelect) {
+      switchModelBtn.addEventListener("click", function() {
+        const selectedModel = modelSelect.value;
+        fetch("/switch_model", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: selectedModel })
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message);
+          window.location.reload();
+        })
+        .catch(error => console.error("Error switching model:", error));
+      });
+    }
+  </script>
+  
+  <!-- Update detection counts setiap 1 detik -->
+  <script>
+    setInterval(() => {
+      fetch(`/get_counts/{{ cam_id }}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.counts) {
+            document.querySelector(".count-car").textContent = data.counts.car;
+            document.querySelector(".count-motorcycle").textContent = data.counts.motorcycle;
+            document.querySelector(".count-truck").textContent = data.counts.truck;
+            document.querySelector(".count-bus").textContent = data.counts.bus;
+            document.querySelector(".count-person").textContent = data.counts.person;
+            document.querySelector(".count-bicycle").textContent = data.counts.bicycle;
+          }
+        })
+        .catch(error => console.error("Error fetching counts:", error));
+    }, 1000);
+  </script>
+</body>
+</html>
